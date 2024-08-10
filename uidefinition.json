@@ -1,0 +1,452 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+    "handler": "Microsoft.Azure.CreateUIDef",
+    "version": "0.1.2-preview",
+    "parameters": {
+      "steps": [  
+        {
+          "name": "Project Information",
+          "label": "Project Information",
+          "subLabel": {
+            "preValidation": "Configure the App",
+            "postValidation": "Done"
+          },
+          "bladeTitle": "Project Information",
+          "elements": [
+            {
+              "name": "infoMessage",
+              "type": "Microsoft.Common.InfoBox",
+              "visible": true,
+              "options": {
+                  "icon": "Info",
+                  "text": "\nMCB is a new generation, AI-enabled, optimized and consolidated Cloud Billing aggregation tool. It provides a unified billing platform which integrates billing of all three Cloud service providers, Users can view and manage the multi cloud billing and subscriptions.. \n\n** For More assistance please reach us on marketplace@evoketechnologies.com\n\nWEBSITE\nhttps://www.evoketechnologies.com/\n\nNOTICE\nMCB (Evoke Multi Cloud Billing) is a product of Evoke Technologies Pvt. Ltd.© 2024 All Rights Reserved."
+              }
+          }
+          ]
+        },   
+  
+        {
+          "name": "BasicConfig",
+          "label": "Basic Configuration",
+          "subLabel": {
+            "preValidation": "Configure the App",
+            "postValidation": "Done"
+          },
+          "bladeTitle": "Basic Configuration",
+          "elements": [
+            {
+              "name": "SubscriptionName",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Subscription Name",
+              "toolTip": "Name of the subscription",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z0-9]{1,50}$",
+                "validationMessage": "Subscription name must be between 1 and 50 characters long and contain only letters and numbers."
+              },
+              "visible": true
+            },
+            {
+              "name": "ResourceGroupName",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Resource Group Name",
+              "toolTip": "Name of the resource group",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z0-9_().-]{1,90}$",
+                "validationMessage": "Resource group name must be between 1 and 90 characters long and can only contain letters, numbers, underscores, periods, hyphens, and parentheses."
+              },
+              "visible": true
+            },
+            {
+              "name": "Location",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Location Name",
+              "toolTip": "Name of the Location",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z0-9\\s-]{1,90}$",
+                "validationMessage": "Location name must be between 1 and 90 characters long and contain only letters, numbers, spaces, and hyphens."
+              },
+              "visible": true
+            },
+            {
+              "name": "OrganizationName",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Organization Name",
+              "toolTip": "Name of the organization",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z0-9\\s]{1,100}$",
+                "validationMessage": "Organization name must be between 1 and 100 characters long and can contain only letters, numbers, and spaces."
+              },
+              "visible": true
+            }
+          ]
+        },      
+        {
+          "name": "AppServicesConfig",
+          "label": "App Services Configuration",
+          "subLabel": {
+            "preValidation": "Configure the App Services",
+            "postValidation": "Done"
+          },
+          "bladeTitle": "App Services Configuration",
+          "elements": [
+            {
+              "name": "AppServicePlanName",
+              "type": "Microsoft.Common.TextBox",
+              "label": "App Service Plan",
+              "toolTip": "Name of the App Service Plan",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z][a-zA-Z0-9-]{0,58}[a-zA-Z0-9]$",
+                "validationMessage": "Name must start with a letter, be between 1 and 60 characters long, and contain only letters, numbers, and hyphens, with the last character being a letter or number."
+              },
+              "validations": [
+                {
+                  "name": "checkDatabaseNameAvailability",
+                  "request": {
+                    "method": "POST",
+                    "path": "[concat(subscription().id, '/providers/Microsoft.Web/checkNameAvailability?api-version=2022-03-01')]",
+                    "body": {
+                      "type": "Microsoft.Web/serverfarms",
+                      "name": "[value]"
+                    }
+                  },
+                  "isValid": "[not(basics('checkDatabaseNameAvailability').nameAvailable)]",
+                  "message": "Name already taken"
+                }
+              ],
+              "visible": true
+            },
+            {
+              "name": "ApiAppServiceName",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Api AppService Name",
+              "toolTip": "Name of the Api App Service Name",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z][a-zA-Z0-9-]{0,58}[a-zA-Z0-9]$",
+                "validationMessage": "Name must start with a letter, be between 1 and 60 characters long, and contain only letters, numbers, and hyphens, with the last character being a letter or number."
+            },
+                "validations": [
+                  {
+                    "name": "checkDatabaseNameAvailability",
+                    "request": {
+                      "method": "POST",
+                      "path": "[concat(subscription().id, '/providers/Microsoft.Web/checkNameAvailability?api-version=2022-03-01')]",
+                      "body": {
+                        "type": "Microsoft.Web/sites",
+                        "name": "[value]"
+                      }
+                    },
+                    "isValid": "[not(basics('checkDatabaseNameAvailability').nameAvailable)]",
+                    "message": "Name already taken"
+                  }
+                ],
+              "visible": true
+            },
+            {
+              "name": "uiAppServiceName",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Ui AppService Name",
+              "toolTip": "Name of the UIApp Service Name",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z][a-zA-Z0-9-]{0,58}[a-zA-Z0-9]$",
+                "validationMessage": "Name must start with a letter, be between 1 and 60 characters long, and contain only letters, numbers, and hyphens, with the last character being a letter or number."
+            },
+                "validations": [
+                  {
+                    "name": "checkDatabaseNameAvailability",
+                    "request": {
+                      "method": "POST",
+                      "path": "[concat(subscription().id, '/providers/Microsoft.Web/checkNameAvailability?api-version=2022-03-01')]",
+                      "body": {
+                        "type": "Microsoft.Web/sites",
+                        "name": "[value]"
+                      }
+                    },
+                    "isValid": "[not(basics('checkDatabaseNameAvailability').nameAvailable)]",
+                    "message": "Name already taken"
+                  }
+                ],
+              "visible": true
+            }
+          ]
+        },
+        {
+          "name": "KeyvaultConfig",
+          "label": "Azure Keyvault Configuration",
+          "subLabel": {
+            "preValidation": "Configure the Azure Keyvault",
+            "postValidation": "Done"
+          },
+          "bladeTitle": "Azure Keyvault Configuration",
+          "elements": [
+            {
+              "name": "keyVaultName",
+              "type": "Microsoft.Common.TextBox",
+              "label": "keyVault Name",
+              "toolTip": "Name of the keyvault",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z][a-zA-Z0-9-]{1,22}[a-zA-Z0-9]$",
+                "validationMessage": "Name must start with a letter, be between 2 and 24 characters long, and contain only letters, numbers, and hyphens, with the last character being a letter or number."
+            },
+                "validations": [
+                  {
+                    "name": "checkDatabaseNameAvailability",
+                    "request": {
+                      "method": "POST",
+                      "path": "[concat(subscription().id, '/providers/Microsoft.KeyVault/checkNameAvailability?api-version=2022-03-01')]",
+                      "body": {
+                        "type": "Microsoft.KeyVault/vaults",
+                        "name": "[value]"
+                      }
+                    },
+                    "isValid": "[not(basics('checkDatabaseNameAvailability').nameAvailable)]",
+                    "message": "Name already taken"
+                  }
+                ],
+              "visible": true
+            }
+          ]
+        },
+        {
+          "name": "SQLServerConfig",
+          "label": "SQL Server Configuration",
+          "subLabel": {
+            "preValidation": "Configure the SQL Server",
+            "postValidation": "Done"
+          },
+          "bladeTitle": "SQL Server Configuration",
+          "elements": [
+            {
+              "name": "ServerInstance",
+              "type": "Microsoft.Common.TextBox",
+              "label": "SQL Server Name",
+              "toolTip": "Name of the sql Server Instance",
+              "defaultValue": "",
+              "visible": true,
+              "constraints": {
+                "required": true,
+                "regex": "^(?!.*--)(?!.*-$)(?!^-)[a-z0-9-]{1,63}$",
+                "validationMessage": "Name must not contain consecutive hyphens, start or end with a hyphen, and be between 1 and 63 characters long, consisting only of lowercase letters, numbers, and hyphens."
+            },
+                "validations": [
+                  {
+                    "name": "checkDatabaseNameAvailability",
+                    "request": {
+                      "method": "POST",
+                      "path": "[concat(subscription().id, '/providers/Microsoft.Sql/checkNameAvailability?api-version=2022-03-01')]",
+                      "body": {
+                        "type": "Microsoft.Sql/servers",
+                        "name": "[value]"
+                      }
+                    },
+                    "isValid": "[not(basics('checkDatabaseNameAvailability').nameAvailable)]",
+                    "message": "Name already taken"
+                  }
+                ]
+            },
+            {
+              "name": "Database",
+              "type": "Microsoft.Common.TextBox",
+              "label": "SQL DB Name",
+              "toolTip": "Name of the Sql Instance DB",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z][a-zA-Z0-9-]{1,28}[a-zA-Z0-9]$",
+                "validationMessage": "Name must start with a letter, be between 3 and 30 characters long, and contain only letters, numbers, and hyphens, with the last character being a letter or number."
+            },
+                "validations": [
+                  {
+                    "name": "checkDatabaseNameAvailability",
+                    "request": {
+                      "method": "POST",
+                      "path": "[concat(subscription().id, '/providers/Microsoft.Sql/checkNameAvailability?api-version=2022-03-01')]",
+                      "body": {
+                        "type": "Microsoft.Sql/servers/databases",
+                        "name": "[value]"
+                      }
+                    },
+                    "isValid": "[not(basics('checkDatabaseNameAvailability').nameAvailable)]",
+                    "message": "Name already taken"
+                  }
+                ],
+              "visible": true
+            },
+            {
+              "name": "SQLUsername",
+              "type": "Microsoft.Common.TextBox",
+              "label": "SQL Username",
+              "toolTip": "Sql Instance User Name",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z][a-zA-Z0-9_$#]{0,127}$",
+                "validationMessage": "The user name must start with a letter, be between 1 and 128 characters long, and contain only letters, numbers, underscores (_), dollar signs ($), and pound signs (#)."
+            },
+              "visible": true
+            },
+            {
+              "name": "SQLPassword",
+              "type": "Microsoft.Common.PasswordBox",
+              "label": {
+                  "password": "Password",
+                  "confirmPassword": "Confirm password"
+              },
+              "toolTip": "Sql Password",
+              "constraints": {
+                  "required": true,
+                  "customPasswordRegex": "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[\\w~@#$%^&*+=|{}:;!.?\\()\\[\\]-]{8,}$",
+                  "customValidationMessage": "The password must contain at least 8 characters, with at least 1 uppercase, 1 lowercase and 1 number."
+              },
+              "options": {
+                  "hideConfirmation": false
+              },
+              "visible": true
+        
+            }
+          ]
+        },
+        
+        {
+          "name": "AppConfig",
+          "label": "App Configuration",
+          "subLabel": {
+            "preValidation": "Configure the App ",
+            "postValidation": "Done"
+          },
+          "bladeTitle": "App Configuration",
+          "elements": [
+            {
+              "name": "SubscriptionID",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Subscription ID",
+              "toolTip": "SubscriptionID",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z0-9-]{36,50}$",
+                "validationMessage": "SubscriptionID must be alphanumeric characters and hyphens, between 36 and 50 characters long."
+              },
+              "visible": true
+            },
+            {
+              "name": "TenantID",
+              "type": "Microsoft.Common.TextBox",
+              "label": "TenantID",
+              "toolTip": "TenantID",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[0-9a-fA-F]{8}[-]?([0-9a-fA-F]{4}[-]?){3}[0-9a-fA-F]{12}$",
+                "validationMessage": "Enter a valid TenantID in GUID format."
+              },
+              "visible": true
+            },
+            {
+              "name": "ClientID",
+              "type": "Microsoft.Common.TextBox",
+              "label": "ClientID",
+              "toolTip": "ClientID",
+              "constraints": {
+                "required": true,
+                "regex": "^[0-9a-fA-F]{8}[-]?([0-9a-fA-F]{4}[-]?){3}[0-9a-fA-F]{12}$",
+                "validationMessage": "Enter a valid ClientID in GUID format."
+              },
+              "visible": true
+            },
+            {
+              "name": "ClientSecret",
+              "type": "Microsoft.Common.PasswordBox",
+              "label": {
+                "password": "Client Secret",
+                "confirmPassword": "Confirm ClientSecret"
+            },
+            "toolTip": "Provide Client Secret",
+            "constraints": {
+              "required": true,
+              "validationMessage": "ClientSecret IS required"
+          },
+            "options": {
+                "hideConfirmation": false
+            },
+              "visible": true
+            },
+            {
+              "name": "EmailApiKey",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Email API Key",
+              "toolTip": "API Key for Email Service",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z0-9-_]{32,128}$",
+                "validationMessage": "Please Enter a Valid Email API Key"
+              },
+              "visible": true
+            },
+            {
+              "name": "SendEmailApiGrid",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Send Email API Grid",
+              "toolTip": "API Grid for Sending Emails",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z0-9-_]{32,128}$",
+                "validationMessage": "Please enter Valid Email Address for Send Email API Grid"
+              },
+              "visible": true
+            },
+            {
+              "name": "MCBAdmin",
+              "type": "Microsoft.Common.TextBox",
+              "label": "MCB Admin",
+              "toolTip": "Admin Email for MCB",
+              "defaultValue": "",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+                "validationMessage": "Enter a valid email address for MCB Admin."
+              },
+              "visible": true
+            }
+          ]
+        }
+      ],  
+      "outputs": {
+          "ResourceGroupName": "[steps('BasicConfig').ResourceGroupName]", 
+          "Location": "[location()]",
+          "OrganizationName": "[steps('BasicConfig').OrganizationName]",
+          "appServicePlanName": "[steps('AppServicesConfig').appServicePlanName]",
+          "apiappServiceName": "[steps('AppServicesConfig').apiappServiceName]",
+          "uiappServiceName": "[steps('AppServicesConfig').uiappServiceName]",
+          "ServerInstance": "[steps('SQLServerConfig').ServerInstance]",
+          "keyVaultName": "[steps('KeyvaultConfig').keyVaultName]",
+          "Database": "[steps('SQLServerConfig').Database]",
+          "SQLUsername": "[steps('SQLServerConfig').SQLUsername]",
+          "SQLPassword": "[steps('SQLServerConfig').sqlPassword]",
+          "SubscriptionID": "[steps('AppConfig').SubscriptionID]",
+          "TenantID": "[steps('AppConfig').TenantID]",
+          "ClientSecret": "[steps('AppConfig').ClientSecret]",
+          "ClientID": "[steps('AppConfig').ClientID]",
+          "EmailApiKey": "[steps('AppConfig').EmailApiKey]",
+          "SendEmailApiGrid": "[steps('AppConfig').SendEmailApiGrid]",
+          "MCBAdmin": "[steps('AppConfig').MCBAdmin]"
+      }
+    }
+  }

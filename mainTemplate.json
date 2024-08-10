@@ -1,0 +1,811 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apiappServiceName": {
+      "type": "string",
+      "defaultValue": "mcb-api-app",
+      "metadata": {
+        "description": "Name of the App Service"
+      }
+    },
+    "appServicePlanName": {
+      "type": "string",
+      "defaultValue": "mcb-serviceplan",
+      "metadata": {
+        "description": "Name of the App Service Plan"
+      }
+    },
+    "uiAppServiceName": {
+      "type": "string",
+      "defaultValue": "mcb-ui-app",
+      "metadata": {
+        "description": "Name of the UI App Service"
+      }
+    },
+    "keyVaultName": {
+      "type": "string",
+      "defaultValue": "mcb-keyvault",
+      "metadata": {
+        "description": "Name of the Key Vault"
+      }
+    },
+    "ServerInstance": {
+      "type": "string",
+      "defaultValue": "mcb-sql-server",
+      "metadata": {
+        "description": "Name of the Sql Server Instance"
+      }
+    },
+    "Database": {
+      "type": "string",
+      "defaultValue": "mcb-sql-db",
+      "metadata": {
+        "description": "Name of the Sql DB Instance"
+      }
+    },
+    "SQLUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "SQL username"
+      }
+    },
+    "SQLPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "SQL Password"
+      }
+    },
+    "elasticPoolStorageSize": {
+        "type": "string",
+        "defaultValue": "1073741824",
+        "metadata": {
+            "description": "The size, in bytes, of the elastic pool storage allocated."
+        }
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the location"
+      }
+    },
+    "ClientIDName": {
+      "type": "string",
+      "defaultValue": "ClientIdKey",
+      "metadata": {
+        "description": "Name of the ClientID"
+      }
+    },
+    "ClientIDValue": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Value of the ClientIDKey"
+      }
+    },
+    "TenantIdKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Value of the TenantIdKey"
+      }
+    },
+    "ClientSecretName": {
+      "type": "string",
+      "defaultValue": "ClientSecretKeyData",
+      "metadata": {
+        "description": "Name of the ClientSecret"
+      }
+    },
+    "ClientSecretValue": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Value of the ClientSecretKey"
+      }
+    },
+    "Key": {
+      "type": "string",
+      "defaultValue": "iqBeI9SbIIDVFGjWA9eqpb9M2jDg2n7d",
+      "metadata": {
+        "description": "Name of the key for signing token"
+      }
+    },
+    "DailyAwsCostResourceWiseHrs": {
+      "type": "int",
+      "defaultValue": 8,
+      "metadata": {
+        "description": "Value of the AWS cost incurred per hours resource wise Daily"
+      }
+    },
+    "DailyAzureCostResourceWiseHrs": {
+      "type": "int",
+      "defaultValue": 8,
+      "metadata": {
+        "description": "Value of the Azure cost incurred per hours resource wise Daily"
+      }
+    },
+    "DailyCurrencyHrs": {
+      "type": "int",
+      "defaultValue": 8,
+      "metadata": {
+        "description": "Value of the Daily currency Hours"
+      }
+    },
+    "EmailApiKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Value of the EmailApiKey"
+      }
+    },
+    "OrganizationName": {
+      "type": "string",
+      "metadata": {
+        "description": "Value of the Organization Name"
+      }
+    },
+    "SendEmailApiGrid": {
+      "type": "string",
+      "metadata": {
+        "description": "Value of the SendEmailApiGrid"
+      }
+    },
+    "MCBAdmin": {
+      "type": "string",
+      "metadata": {
+        "description": "Value of the MCBAdmin"
+      }
+    },
+    "FailedAwsCostResourceWiseHrs": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Value of the failed AWS cost resource wise hours"
+      }
+    },
+    "FailedAzureCostResourceWiseHrs": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Value of the failed Azure cost resource wise hours"
+      }
+    },
+    "FailedSubscriptionIntValue": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Value of the Failed Subscription Int Value"
+      }
+    },
+    "MonthlyUsageIntValue": {
+      "type": "int",
+      "defaultValue": 8,
+      "metadata": {
+        "description": "Value of the monthly usage Int Value"
+      }
+    },
+    "FileShareName": {
+      "type": "string",
+      "defaultValue": "mcb-mount",
+      "metadata": {
+          "description": "Name of the file share mount"
+      }
+  },  
+  "containerPath": {
+      "type": "string",
+      "defaultValue": "/usr/share/nginx/html/assets",
+      "metadata": {
+          "description": "Path in the container to mount the file share"
+      }
+  },
+"storageAccountName": {
+    "type": "string",
+    "defaultValue": "mcbworkspacesg",
+    "metadata": {
+        "description": "Name of the Storage Account"
+    }
+  },
+  "dockerRegistryServerUrl": {
+      "type": "string",
+      "defaultValue": "https://hub.docker.com/",
+    "metadata": {
+      "description": "The URL of the Docker registry."
+    }
+  }
+
+  },
+  "variables": {
+    "apiappService": "[uri(concat('https://', parameters('apiappServiceName'), '.azurewebsites.net'), '')]",
+    "lengthOfapiUri": "[length(variables('apiappService'))]",
+    "lastCharapi": "[substring(variables('apiappService'), sub(variables('lengthOfapiUri'), 1), 1)]",
+    "apiappServiceUrl": "[if(equals(variables('lastCharapi'), '/'), substring(variables('apiappService'), 0, sub(variables('lengthOfapiUri'), 1)), variables('apiappService'))]",
+
+"uiappService": "[uri(concat('https://', parameters('uiAppServiceName'), '.azurewebsites.net'), '')]",
+  "lengthOfuiUri": "[length(variables('uiappService'))]",
+    "lastCharui": "[substring(variables('uiappService'), sub(variables('lengthOfuiUri'), 1), 1)]",
+    "uiappServiceUrl": "[if(equals(variables('lastCharui'), '/'), substring(variables('uiappService'), 0, sub(variables('lengthOfuiUri'), 1)), variables('uiappService'))]",
+
+    "Audience": "[variables('uiappServiceUrl')]",
+    "Issuer": "[uri(concat('https://', parameters('uiAppServiceName'), '.azurewebsites.net'), '')]"
+    },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2022-09-01",
+      "name": "[parameters('appServicePlanName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "Name": "B1",
+        "Tier": "Basic",
+        "Size": "B1",
+        "Family": "B",
+        "Capacity": 2
+      },
+      "properties": {
+        "name": "[parameters('appServicePlanName')]",
+        "reserved": true,
+        "perSiteScaling": false
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "[parameters('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "kind": "StorageV2",
+      "sku": {
+          "name": "Standard_LRS",
+          "tier": "Standard"
+      },
+      "tags": {
+          "environment": "dev"
+      },
+      "properties": {
+          "supportsHttpsTrafficOnly": true
+      }
+  },
+  {
+      "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+      "apiVersion": "2023-01-01",
+      "name":  "[concat(parameters('storageAccountName'), '/default/', parameters('FileShareName'))]",
+      "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+      ],
+      "properties": {
+          "shareQuota": "5120"
+      }
+  },
+  {
+    "type": "Microsoft.Web/sites",
+    "apiVersion": "2022-09-01",
+    "name": "[parameters('apiappServiceName')]",
+    "location": "[parameters('location')]",
+    "kind": "app",
+    "identity": {
+      "type": "SystemAssigned"
+    },
+    "dependsOn": [
+      "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
+    ],
+    "properties": {
+      "name": "[parameters('apiappServiceName')]",
+      "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+      "siteConfig": {
+        "numberOfWorkers": 1,
+        "linuxFxVersion": "DOCKER|evokebilling/mcbapi:1.0.0",
+        "acrUseManagedIdentityCreds": false,
+        "alwaysOn": true,  
+        "cors": {  
+          "allowedOrigins": [
+            "[variables('uiappServiceUrl')]"
+          ],
+          "allowedHeaders": ["*"],
+        "allowedMethods": ["GET", "POST", "PUT", "DELETE"],
+        "exposedHeaders": ["*"]
+        }
+      },
+      "httpsOnly": true
+    },
+    "tags": {
+      "environment": "dev"
+    }
+  },
+
+  {
+    "type": "Microsoft.Web/sites/config",
+    "apiVersion": "2022-09-01",
+    "name": "[concat(parameters('apiappServiceName'), '/appsettings')]",
+    "dependsOn": [
+      "[resourceId('Microsoft.Web/sites', parameters('apiappServiceName'))]",
+      "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+    ],
+    "properties": {
+      "KEY_VAULT_URL": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))).vaultUri]",
+      "EmailApiKey": "[parameters('EmailApiKey')]" 
+    },
+    "tags": {
+      "environment": "dev"
+    }
+  },
+
+  {
+  "type": "Microsoft.Web/sites",
+  "apiVersion": "2022-09-01",
+  "name": "[parameters('uiAppServiceName')]",
+  "location": "[parameters('location')]",
+  "kind": "app",
+  "identity": {
+    "type": "SystemAssigned"
+  },
+  "dependsOn": [
+    "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+    "[resourceId('Microsoft.Resources/deploymentScripts', 'mountfile')]"
+  ],
+  "properties": {
+    "name": "[parameters('uiAppServiceName')]",
+    "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+    "siteConfig": {
+      "numberOfWorkers": 1,
+      "linuxFxVersion": "DOCKER|evokebilling/mcbui:1.0.0",
+      "acrUseManagedIdentityCreds": false,
+      "alwaysOn": true,
+      "cors": {
+        "allowedOrigins": [
+          "[variables('apiappServiceUrl')]"
+        ],
+        "allowedHeaders": ["*"],
+        "allowedMethods": ["GET", "POST", "PUT", "DELETE"],
+        "exposedHeaders": ["*"]
+      },
+      "azureStorageAccounts": {
+        "apiworkspace": {
+          "type": "AzureFiles",
+          "accountName": "[parameters('storageAccountName')]",
+          "shareName": "[parameters('FileShareName')]",
+          "mountPath": "[parameters('containerPath')]",
+          "accessKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2023-01-01').keys[0].value]"
+        }
+      }
+    },
+    "httpsOnly": true
+  },
+  "tags": {
+    "environment": "dev"
+  }
+  },
+
+  {
+    "type": "Microsoft.Web/sites/config",
+    "apiVersion": "2023-01-01",
+    "name": "[concat(parameters('uiAppServiceName'), '/appsettings')]",
+    "dependsOn": [
+      "[resourceId('Microsoft.Web/sites', parameters('uiAppServiceName'))]",
+      "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+      "[resourceId('Microsoft.Resources/deploymentScripts', 'mountfile')]"
+    ],
+    "properties": {
+      "KEY_VAULT_URL": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))).vaultUri]",
+      "EmailApiKey": "[parameters('EmailApiKey')]",
+      "DOCKER_REGISTRY_SERVER_URL": "[parameters('dockerRegistryServerUrl')]"
+    }
+  },
+
+  {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2022-11-01",
+      "name": "[parameters('keyVaultName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "standard"
+        },
+        "tenantId": "[parameters('TenantIdKey')]",
+        "accessPolicies": [
+          {
+            "tenantId": "[parameters('TenantIdKey')]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', parameters('apiappServiceName')), '2023-01-01', 'full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "get",
+                "list",
+                "set",
+                "delete",
+                "recover",
+                "backup",
+                "restore"
+              ]
+            }
+          }
+        ]
+      },
+      "tags": {
+        "environment": "dev"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('apiappServiceName'))]"
+      ]
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/accessPolicies",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/add')]",
+      "properties": {
+        "accessPolicies": [
+          {
+          "tenantId": "[parameters('TenantIdKey')]",
+          "objectId": "[reference(resourceId('Microsoft.Web/sites', parameters('apiappServiceName')), '2023-01-01', 'Full').identity.principalId]",
+          "permissions": {
+            "secrets": [
+              "get",
+              "list",
+              "set",
+              "delete",
+              "recover",
+              "backup",
+              "restore"
+            ]
+          }
+        }]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('apiappServiceName'))]",
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ]
+    },   
+
+    {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2022-11-01-preview",
+      "name": "[parameters('ServerInstance')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "administratorLogin": "[parameters('SQLUsername')]",
+        "administratorLoginPassword": "[parameters('SQLPassword')]"
+      },
+      "tags": {
+        "environment": "dev"
+      },
+      "resources": [
+        {
+          "type": "firewallRules",
+          "apiVersion": "2022-11-01-preview",
+          "name": "AllowAzureServices",
+          "dependsOn": [
+            "[resourceId('Microsoft.Sql/servers', parameters('ServerInstance'))]"
+          ],
+          "properties": {
+            "startIpAddress": "0.0.0.0",
+            "endIpAddress": "0.0.0.0",
+            "azureIpConfiguration": {
+              "azureServicesAllowed": true
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "apiVersion": "2023-07-01",
+      "name": "pid-85f3d9de-6ffd-4a3c-9bed-e9b3b9e01201-partnercenter",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "resources": []
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Sql/servers/databases",
+      "apiVersion": "2022-11-01-preview",
+      "name": "[concat(parameters('ServerInstance'), '/', parameters('Database'))]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('ServerInstance'))]"
+      ],
+      "properties": {
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
+        "edition": "GeneralPurpose",
+        "maxSizeBytes": "[parameters('elasticPoolStorageSize')]",
+        "requestedServiceObjectiveName": "GP_Gen5_2"
+      },
+      "tags": {
+        "environment": "dev"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/DBConnectionKey')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('ServerInstance'), parameters('Database'))]"
+      ],
+      "properties": {
+        "value": "[concat('Server=tcp:', reference(parameters('ServerInstance')).fullyQualifiedDomainName, ',1433;Initial Catalog=', parameters('Database'), ';Persist Security Info=False;User ID=', parameters('SQLUsername'), ';Password=', parameters('SQLPassword'), ';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/',parameters('ClientSecretName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('ClientSecretValue')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/',parameters('ClientIDName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('ClientIDValue')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/Audience')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
+        "[resourceId('Microsoft.Web/sites', parameters('uiAppServiceName'))]"
+        ],
+      "properties": {
+        "value": "[variables('Audience')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/Issuer')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
+        "[resourceId('Microsoft.Web/sites', parameters('uiAppServiceName'))]"
+      ],
+      "properties": {
+        "value": "[variables('Issuer')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/Key')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('Key')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/DailyAwsCostResourceWiseHrs')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('DailyAwsCostResourceWiseHrs')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/DailyAzureCostResourceWiseHrs')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('DailyAzureCostResourceWiseHrs')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/DailyCurrencyHrs')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('DailyCurrencyHrs')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/EmailApiKey')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('EmailApiKey')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/FailedAwsCostResourceWiseHrs')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('FailedAwsCostResourceWiseHrs')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/FailedAzureCostResourceWiseHrs')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('FailedAzureCostResourceWiseHrs')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/FailedSubscriptionIntValue')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('FailedSubscriptionIntValue')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/MonthlyUsageIntValue')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('MonthlyUsageIntValue')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/OrganizationName')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('OrganizationName')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/SendEmailApiGrid')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('SendEmailApiGrid')]"
+      }
+    },
+
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/MCBAdmin')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('MCBAdmin')]"
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/TenantIdKey')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('TenantIdKey')]"
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/DomainUrlKey')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[variables('Issuer')]"
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/MCBUI')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[variables('Issuer')]"
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/ApiUrlKey')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[concat(variables('apiappServiceUrl'), '/api/')]"
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2022-11-01",
+      "name": "[concat(parameters('keyVaultName'), '/MCBAPI')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[concat(variables('apiappServiceUrl'), '/api/')]"
+      }
+    },
+  
+    {
+      "type": "Microsoft.Resources/deploymentScripts",
+      "apiVersion": "2023-08-01",
+      "name": "mountfile",
+      "location": "[parameters('location')]",
+      "kind": "AzurePowerShell",
+      "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+          "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
+      ],
+      "properties": {
+          "forceUpdateTag": "1",
+          "containerSettings": {
+              "containerGroupName": "mountappservice"
+          },
+          "storageAccountSettings": {
+              "storageAccountName": "[parameters('storageAccountName')]",
+              "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2023-01-01').keys[0].value]"
+          },
+          "azPowerShellVersion": "9.7",
+          "arguments": "[concat('-ApiUrl ', parameters('apiappServiceName'), ' -storageAccountName ', parameters('storageAccountName'), ' -StorageAccountKey ', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2023-01-01').keys[0].value, ' -FileShareName ', parameters('FileShareName'))]",
+          "primaryScriptUri": "https://raw.githubusercontent.com/evokegit/Accelarator-EWS/main/mountfile.ps1",
+
+          "timeout": "PT30M",
+          "cleanupPreference": "OnSuccess",
+          "retentionInterval": "P1D"
+    }
+    }
+  ]
+}
